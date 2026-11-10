@@ -1,7 +1,8 @@
 package com.mallang.domain.safety.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
-
+import com.mallang.domain.safety.dto.response.SafetyGuideResponse;
+import com.mallang.domain.safety.enums.GuideType;
 import org.junit.jupiter.api.Test;
 
 class SafetyServiceTest {
@@ -26,5 +27,12 @@ class SafetyServiceTest {
     @Test
     void 빈_글은_감지하지_않는다() {
         assertThat(service.check("  ").detected()).isFalse();
+    }
+
+    @Test
+    void 안내_목록에_109와_마들랜이_있다() {
+        assertThat(service.getGuides())
+                .extracting(SafetyGuideResponse::guideType)
+                .containsExactly(GuideType.HOTLINE_109, GuideType.SNS_COUNSEL);
     }
 }
