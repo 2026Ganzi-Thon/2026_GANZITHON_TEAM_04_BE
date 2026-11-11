@@ -36,5 +36,8 @@ out/
 ### VS Code ###
 .vscode/
 
-application-local.yml
 .env
+.env.*
+!.env.example
+*.log
+AGENTS.md
