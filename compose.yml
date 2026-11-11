@@ -1,0 +1,14 @@
+name: mallang
+
+services:
+  app:
+    image: ${DOCKERHUB_USERNAME:?Set DOCKERHUB_USERNAME in .env}/mallang:latest
+    build: .
+    volumes:
+      - ./.env:/app/.env:ro
+    environment:
+      TZ: ${TZ:?Set TZ in .env}
+    ports:
+      - "${APP_HOST_PORT:?Set APP_HOST_PORT in .env}:${SERVER_PORT:?Set SERVER_PORT in .env}"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
