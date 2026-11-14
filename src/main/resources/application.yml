@@ -2,7 +2,7 @@ spring:
   application:
     name: mallang
   config:
-    import: file:.env[.properties]
+    import: optional:file:.env[.properties]
   profiles:
     active: ${SPRING_PROFILES_ACTIVE}
   datasource:
