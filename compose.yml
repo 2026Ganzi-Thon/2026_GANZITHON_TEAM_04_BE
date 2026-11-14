@@ -2,8 +2,9 @@ name: mallang
 
 services:
   app:
-    image: ${DOCKERHUB_USERNAME:?Set DOCKERHUB_USERNAME in .env}/mallang:latest
+    image: ${DOCKERHUB_USERNAME:?Set DOCKERHUB_USERNAME in .env}/mallang:${DOCKER_IMAGE_TAG:?Set DOCKER_IMAGE_TAG in .env}
     build: .
+    restart: unless-stopped
     volumes:
       - ./.env:/app/.env:ro
     environment:
