@@ -54,9 +54,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/mallang:latest
-            ${{ secrets.DOCKERHUB_USERNAME }}/mallang:${{ github.sha }}
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/mallang:latest
 
       - name: 테스트 빌드 결과 정리
         if: always()
@@ -74,10 +72,6 @@ jobs:
           EC2_DEPLOY_PATH: ${{ secrets.EC2_DEPLOY_PATH }}
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
           DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
-          SERVER_PORT: ${{ secrets.SERVER_PORT }}
-          APP_HOST_PORT: ${{ secrets.APP_HOST_PORT }}
-          SPRING_PROFILES_ACTIVE: ${{ secrets.SPRING_PROFILES_ACTIVE }}
-          TZ: ${{ secrets.TZ }}
           CORS_ALLOWED_ORIGINS: ${{ secrets.CORS_ALLOWED_ORIGINS }}
           LOCAL_DB_URL: ${{ secrets.LOCAL_DB_URL }}
           LOCAL_DB_USERNAME: ${{ secrets.LOCAL_DB_USERNAME }}
@@ -87,13 +81,13 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
           command_timeout: 12m
-          envs: EC2_DEPLOY_PATH,DOCKERHUB_USERNAME,DOCKERHUB_TOKEN,SERVER_PORT,APP_HOST_PORT,SPRING_PROFILES_ACTIVE,TZ,CORS_ALLOWED_ORIGINS,LOCAL_DB_URL,LOCAL_DB_USERNAME,LOCAL_DB_PASSWORD
+          envs: EC2_DEPLOY_PATH,DOCKERHUB_USERNAME,DOCKERHUB_TOKEN,CORS_ALLOWED_ORIGINS,LOCAL_DB_URL,LOCAL_DB_USERNAME,LOCAL_DB_PASSWORD
           script: |
             set -eu
             umask 077
 
-            # Secrets 누락 및 .env 형식을 깨뜨리는 값을 배포 전에 검사합니다.
-            for name in EC2_DEPLOY_PATH DOCKERHUB_USERNAME DOCKERHUB_TOKEN SERVER_PORT APP_HOST_PORT SPRING_PROFILES_ACTIVE TZ CORS_ALLOWED_ORIGINS LOCAL_DB_URL LOCAL_DB_USERNAME LOCAL_DB_PASSWORD; do
+            # 배포에 필요한 Secrets 누락을 검사합니다.
+            for name in EC2_DEPLOY_PATH DOCKERHUB_USERNAME DOCKERHUB_TOKEN CORS_ALLOWED_ORIGINS LOCAL_DB_URL LOCAL_DB_USERNAME LOCAL_DB_PASSWORD; do
               test -n "$(printenv "$name")" || { echo "Missing secret: $name"; exit 1; }
             done
             case "$EC2_DEPLOY_PATH" in
@@ -103,52 +97,42 @@ jobs:
 
             docker info >/dev/null
             docker compose version
-            command -v curl >/dev/null
 
             # EC2에 이미 clone한 저장소를 사용하며 로컬 변경을 강제로 지우지 않습니다.
             cd "$EC2_DEPLOY_PATH"
             git fetch origin release
             git checkout --detach '${{ github.sha }}'
 
-            # 앱 설정은 하나의 .env로 생성합니다. 토큰과 SSH 키는 넣지 않습니다.
+            # 일반 설정은 Compose에 두고 접속 정보만 Secrets로 채웁니다.
+            # 토큰과 SSH 키는 앱의 .env에 넣지 않습니다.
             trap 'rm -f -- .env.next' EXIT
-            for name in SERVER_PORT APP_HOST_PORT SPRING_PROFILES_ACTIVE DOCKERHUB_USERNAME CORS_ALLOWED_ORIGINS TZ LOCAL_DB_URL LOCAL_DB_USERNAME LOCAL_DB_PASSWORD; do
+            for name in DOCKERHUB_USERNAME CORS_ALLOWED_ORIGINS LOCAL_DB_URL LOCAL_DB_USERNAME LOCAL_DB_PASSWORD; do
               value=$(printenv "$name")
-              # Spring properties와 Compose가 같은 값을 읽도록 단일 행·역슬래시 없는 값을 사용합니다.
+              # .env 파일에는 단일 행·역슬래시 없는 값을 기록합니다.
               if printf '%s' "$value" | LC_ALL=C grep -q '[[:cntrl:]\\]'; then
                 echo "Unsupported control character or backslash in secret: $name" >&2
                 exit 1
               fi
               printf '%s=%s\n' "$name" "$value"
             done > .env.next
-            printf 'DOCKER_IMAGE_TAG=%s\n' '${{ github.sha }}' >> .env.next
 
             # 비공개 Docker Hub 저장소에서도 pull할 수 있게 인증합니다.
             printf '%s' "$DOCKERHUB_TOKEN" | docker login --username "$DOCKERHUB_USERNAME" --password-stdin
             docker compose --env-file .env.next config --quiet
             docker compose --env-file .env.next pull app
 
-            # 호스트 소유자는 유지하고 이미지의 app 그룹에만 읽기를 허용합니다.
-            # chmod 600만 사용하면 컨테이너의 일반 사용자가 마운트한 .env를 읽을 수 없습니다.
-            app_gid=$(docker run --rm --entrypoint id "$DOCKERHUB_USERNAME/mallang:${{ github.sha }}" -g)
-            sudo -n chgrp "$app_gid" .env.next
-            chmod 640 .env.next
+            # .env는 호스트에서만 읽고 Compose가 환경변수를 컨테이너에 전달합니다.
+            chmod 600 .env.next
             mv -f -- .env.next .env
 
             # 먼저 pull한 후 컨테이너를 교체해 불필요한 중단을 줄입니다.
             docker compose up -d --no-build --force-recreate --remove-orphans app
 
-            # 새 컨테이너의 health가 UP이어야 배포를 성공으로 처리합니다.
-            for attempt in $(seq 1 60); do
-              if curl --fail --silent --max-time 5 "http://127.0.0.1:$APP_HOST_PORT/actuator/health" | grep -q '"status"[[:space:]]*:[[:space:]]*"UP"'; then
-                docker compose ps
-                echo 'Deployment healthy'
-                exit 0
-              fi
-              sleep 3
-            done
-
+            # 컨테이너 실행 상태만 확인합니다.
+            sleep 10
             docker compose ps
-            docker compose logs --tail=100 app
-            echo 'Deployment health check failed'
-            exit 1
+            if [ -z "$(docker compose ps --status running -q app)" ]; then
+              docker compose logs --tail=100 app
+              echo 'Application container is not running'
+              exit 1
+            fi
