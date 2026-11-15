@@ -47,4 +47,16 @@ class ConcernSessionServiceIntegrationTest {
         assertNull(jdbc.queryForObject("SELECT raw_text FROM active_session WHERE session_id = ?",
                 String.class, sessionId));
     }
+
+    @Test void storesTwoHundredVisibleEmojiAsText() {
+        var owner = users.register();
+        String sessionId = sessions.start(owner.userId());
+        sessions.select(owner.userId(), sessionId, SituationType.RELATIONSHIP, 5);
+        String text = "👨‍👩‍👧‍👦".repeat(200);
+        assertEquals(text, sessions.enterText(owner.userId(), sessionId, text).rawText());
+        assertEquals(text, jdbc.queryForObject("SELECT raw_text FROM active_session WHERE session_id = ?",
+                String.class, sessionId));
+        assertThrows(GeneralException.class,
+                () -> sessions.enterText(owner.userId(), sessionId, text + "가"));
+    }
 }
