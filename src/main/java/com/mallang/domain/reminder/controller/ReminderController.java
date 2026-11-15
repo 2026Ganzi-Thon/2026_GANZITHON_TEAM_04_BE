@@ -20,24 +20,24 @@ public class ReminderController {
     }
 
     @GetMapping("/status")
-    public ReminderStatus status(@RequestHeader("Authorization") String authorization) {
+    public ReminderStatus status(@RequestHeader(value = "Authorization", required = false) String authorization) {
         return reminders.status(users.requireUser(authorization));
     }
 
     @GetMapping
-    public List<ReminderSummary> list(@RequestHeader("Authorization") String authorization) {
+    public List<ReminderSummary> list(@RequestHeader(value = "Authorization", required = false) String authorization) {
         return reminders.list(users.requireUser(authorization));
     }
 
     @GetMapping("/{reminderId}")
-    public ReminderSummary detail(@RequestHeader("Authorization") String authorization,
+    public ReminderSummary detail(@RequestHeader(value = "Authorization", required = false) String authorization,
                                   @PathVariable long reminderId) {
         return reminders.detail(users.requireUser(authorization), reminderId);
     }
 
     @DeleteMapping("/{reminderId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void delete(@RequestHeader("Authorization") String authorization,
+    public void delete(@RequestHeader(value = "Authorization", required = false) String authorization,
                        @PathVariable long reminderId) {
         reminders.delete(users.requireUser(authorization), reminderId);
     }

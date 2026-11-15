@@ -19,7 +19,7 @@ public class CompletedRecordDeletionController {
 
     @DeleteMapping("/{sessionId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void delete(@RequestHeader("Authorization") String authorization,
+    public void delete(@RequestHeader(value = "Authorization", required = false) String authorization,
                        @PathVariable String sessionId) {
         reminders.deleteCompletedRecord(users.requireUser(authorization), sessionId);
     }

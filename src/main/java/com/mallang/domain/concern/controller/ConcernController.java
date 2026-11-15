@@ -28,18 +28,18 @@ public class ConcernController {
 
     @PostMapping("/sessions")
     @ResponseStatus(HttpStatus.CREATED)
-    public SessionId start(@RequestHeader("Authorization") String authorization) {
+    public SessionId start(@RequestHeader(value = "Authorization", required = false) String authorization) {
         return new SessionId(sessions.start(users.requireUser(authorization)));
     }
 
     @PutMapping("/sessions/{sessionId}/concern")
-    public void select(@RequestHeader("Authorization") String authorization,
+    public void select(@RequestHeader(value = "Authorization", required = false) String authorization,
                        @PathVariable String sessionId, @RequestBody Selection body) {
         sessions.select(users.requireUser(authorization), sessionId, body.situationType(), body.weightBefore());
     }
 
     @PutMapping("/sessions/{sessionId}/concern/text")
-    public TextAccepted enterText(@RequestHeader("Authorization") String authorization,
+    public TextAccepted enterText(@RequestHeader(value = "Authorization", required = false) String authorization,
                                   @PathVariable String sessionId, @RequestBody TextInput body) {
         var result = sessions.enterText(users.requireUser(authorization), sessionId, body.rawText());
         return new TextAccepted(result.safety().detected(), result.safety().guideType());
@@ -47,7 +47,8 @@ public class ConcernController {
 
     @PostMapping("/sessions/{sessionId}/cancel")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void cancel(@RequestHeader("Authorization") String authorization, @PathVariable String sessionId) {
+    public void cancel(@RequestHeader(value = "Authorization", required = false) String authorization,
+                       @PathVariable String sessionId) {
         sessions.cancel(users.requireUser(authorization), sessionId);
     }
 

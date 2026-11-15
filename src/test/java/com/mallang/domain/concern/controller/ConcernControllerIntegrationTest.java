@@ -1,5 +1,6 @@
 package com.mallang.domain.concern.controller;
 
+import com.mallang.common.exception.ExceptionAdvice;
 import com.mallang.domain.concern.service.AnonymousUserService;
 import com.mallang.domain.concern.service.ConcernSessionService;
 import com.mallang.domain.reminder.controller.ReminderController;
@@ -24,7 +25,8 @@ class ConcernControllerIntegrationTest {
 
     @Test void firstTapAndConcernFlowRequireOwnerAndShowEmptyNotice() throws Exception {
         var mvc = MockMvcBuilders.standaloneSetup(
-                new ConcernController(users, sessions), new ReminderController(users, reminders)).build();
+                new ConcernController(users, sessions), new ReminderController(users, reminders))
+                .setControllerAdvice(new ExceptionAdvice()).build();
         var owner = users.register();
         String authorization = "Bearer " + owner.token();
         String sessionId = sessions.start(owner.userId());
@@ -45,5 +47,9 @@ class ConcernControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.count").value(0))
                 .andExpect(jsonPath("$.showNotice").value(false));
+        mvc.perform(get("/api/v1/reminders/status"))
+                .andExpect(status().isUnauthorized());
+        mvc.perform(post("/api/v1/sessions"))
+                .andExpect(status().isUnauthorized());
     }
 }
