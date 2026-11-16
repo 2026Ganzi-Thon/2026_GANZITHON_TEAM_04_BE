@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/v1/sessions/{sessionId}/thought-cards")
+@RequestMapping("/api/sessions/{sessionId}/thought-cards")
 public class ThoughtCardController {
     private final AnonymousUserService users;
     private final ThoughtCardService cards;

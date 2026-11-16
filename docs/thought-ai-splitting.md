@@ -3,8 +3,8 @@
 ## 호출 순서
 
 1. 첫 화면 탭 시 익명 토큰을 발급하고, 세션을 생성한다. 자세한 순서는 `docs/concern-reminders-api.md`를 따른다.
-2. 상황과 무게를 선택하고 고민을 입력한다. `PUT /api/v1/sessions/{sessionId}/concern/text`의 `guidanceRequired`가 `true`이면 상담 안내를 먼저 표시한다.
-3. 정상 입력일 때 `POST /api/v1/sessions/{sessionId}/thought-cards`를 호출한다. `Authorization: Bearer <익명 토큰>`이 필요하며 요청 본문은 없다. 서버는 해당 사용자의 활성 세션에 저장한 고민을 읽는다.
+2. 상황과 무게를 선택하고 고민을 입력한다. `PUT /api/sessions/{sessionId}/concern/text`의 `guidanceRequired`가 `true`이면 상담 안내를 먼저 표시한다.
+3. 정상 입력일 때 `POST /api/sessions/{sessionId}/thought-cards`를 호출한다. `Authorization: Bearer <익명 토큰>`이 필요하며 요청 본문은 없다. 서버는 해당 사용자의 활성 세션에 저장한 고민을 읽는다.
 4. 응답 예시: `{"cards":[{"id":"UUID","order":1,"text":"생각"}],"generationMethod":"ai","truncated":false}`. `generationMethod`는 `ai` 또는 `fallback`이다. `truncated=true`면 “생각이 많아 앞의 8장만 보여줘요. 빠진 내용이 없는지 확인하고 카드를 수정해 주세요.” 팝업을 띄운다.
 5. 사용자가 카드를 확인하고 편집한다. 생성 응답에는 고민 원문이 포함되지 않으며 카드는 서버에 저장하지 않는다. 세션 취소 시 기존 취소 API가 원문을 삭제한다.
 
