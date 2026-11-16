@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.*;
 
 /** FR-17: deleting the completed record also removes its reminder. */
 @RestController
-@RequestMapping("/api/v1/records")
+@RequestMapping("/api/records")
 public class CompletedRecordDeletionController {
     private final AnonymousUserService users;
     private final ReminderService reminders;
