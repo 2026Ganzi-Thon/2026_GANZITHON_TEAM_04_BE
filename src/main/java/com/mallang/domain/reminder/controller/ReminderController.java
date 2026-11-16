@@ -9,7 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/v1/reminders")
+@RequestMapping("/api/reminders")
 public class ReminderController {
     private final AnonymousUserService users;
     private final ReminderService reminders;
