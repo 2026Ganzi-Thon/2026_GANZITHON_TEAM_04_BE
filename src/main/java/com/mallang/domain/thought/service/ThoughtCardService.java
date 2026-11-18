@@ -13,10 +13,10 @@ import org.springframework.stereotype.Service;
 public class ThoughtCardService {
     private static final Pattern GRAPHEME = Pattern.compile("\\X");
     private final JdbcTemplate jdbc;
-    private final UpstageThoughtClient upstage;
+    private final AiCardGenerator upstage;
     private final RuleCardGenerator fallback;
 
-    public ThoughtCardService(JdbcTemplate jdbc, UpstageThoughtClient upstage, RuleCardGenerator fallback) {
+    public ThoughtCardService(JdbcTemplate jdbc, AiCardGenerator upstage, RuleCardGenerator fallback) {
         this.jdbc = jdbc;
         this.upstage = upstage;
         this.fallback = fallback;
@@ -36,8 +36,8 @@ public class ThoughtCardService {
         String method = "fallback";
         for (int attempt = 0; attempt < 2; attempt++) {
             try {
-                List<String> candidate = upstage.split(rawText);
-                if (candidate != null && !candidate.isEmpty()) {
+                List<String> candidate = upstage.generate(rawText);
+                if (validCards(candidate)) {
                     texts = candidate;
                     method = "ai";
                     break;
@@ -56,6 +56,14 @@ public class ThoughtCardService {
                 .mapToObj(i -> new Card(UUID.randomUUID().toString(), i + 1, resultTexts.get(i)))
                 .toList();
         return new GeneratedCards(cards, method, truncated);
+    }
+
+    private static boolean validCards(List<String> cards) {
+        if (cards == null || cards.isEmpty() || cards.stream().anyMatch(card -> card == null
+                || card.isBlank() || GRAPHEME.matcher(card).results().limit(201).count() > 200)) {
+            return false;
+        }
+        return cards.stream().distinct().count() == cards.size();
     }
 
     public record Card(String id, int order, String text) {}
