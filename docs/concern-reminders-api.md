@@ -8,7 +8,7 @@
 2. 이후 요청에는 `Authorization: Bearer <token>`을 보낸다. `POST /api/v1/sessions`는 `{ "sessionId": "..." }`를 반환한다.
 3. 상황과 초기 마음 무게를 모두 선택한 뒤 `PUT /api/v1/sessions/{sessionId}/concern`에 `{ "situationType": "RELATIONSHIP", "weightBefore": 3 }`을 보낸다. 상황 코드는 `RELATIONSHIP`, `STUDY_OR_WORK`, `WAITING_FOR_RESULT`, `OTHER`이고 무게는 1~5이다.
 4. `PUT /api/v1/sessions/{sessionId}/concern/text`에 `{ "rawText": "..." }`를 보낸다. 공백만 입력하거나 사용자에게 보이는 문자 기준 200자를 넘기면 400이다. 응답은 `{ "guidanceRequired": false, "guideType": null }` 형식이며 원문은 응답하지 않는다. 위기 표현이면 `guidanceRequired`가 참이고 원문은 서버 세션에 저장하지 않는다. 이때 카드 단계보다 상담 안내를 먼저 표시한다.
-5. 이후 카드 단계에는 `sessionId`를 넘긴다. 현재 카드 생성 기능과 활성 세션 저장소의 연결은 담당 코드에서 추가해야 한다.
+5. 이후 카드 단계에서는 `POST /api/v1/sessions/{sessionId}/thought-cards`를 호출한다. 이 브랜치에서 카드 생성 기능이 활성 세션의 고민 입력값을 읽으며, 자세한 내용은 `docs/thought-ai-splitting.md`를 따른다.
 6. 중단 시 `POST /api/v1/sessions/{sessionId}/cancel`을 호출한다. 성공하면 204이며 임시 고민 입력이 삭제된다.
 
 ## 메인과 미루기 기록
