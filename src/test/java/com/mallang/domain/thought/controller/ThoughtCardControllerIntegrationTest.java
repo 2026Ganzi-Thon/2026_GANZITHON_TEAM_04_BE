@@ -34,12 +34,12 @@ class ThoughtCardControllerIntegrationTest {
         var mvc = MockMvcBuilders.standaloneSetup(new ThoughtCardController(users, cards))
                 .setControllerAdvice(new ExceptionAdvice()).build();
 
-        mvc.perform(post("/api/sessions/{sessionId}/thought-cards", sessionId))
+        mvc.perform(post("/api/v1/sessions/{sessionId}/thought-cards", sessionId))
                 .andExpect(status().isUnauthorized());
-        mvc.perform(post("/api/sessions/{sessionId}/thought-cards", sessionId)
+        mvc.perform(post("/api/v1/sessions/{sessionId}/thought-cards", sessionId)
                         .header("Authorization", "Bearer " + other.token()))
                 .andExpect(status().isNotFound());
-        mvc.perform(post("/api/sessions/{sessionId}/thought-cards", sessionId)
+        mvc.perform(post("/api/v1/sessions/{sessionId}/thought-cards", sessionId)
                         .header("Authorization", "Bearer " + owner.token()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.generationMethod").value("fallback"))
