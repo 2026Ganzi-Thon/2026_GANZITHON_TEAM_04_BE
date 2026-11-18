@@ -8,7 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/v1")
 public class ConcernController {
     private final AnonymousUserService users;
     private final ConcernSessionService sessions;

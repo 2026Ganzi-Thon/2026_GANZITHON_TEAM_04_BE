@@ -31,25 +31,25 @@ class ConcernControllerIntegrationTest {
         String authorization = "Bearer " + owner.token();
         String sessionId = sessions.start(owner.userId());
 
-        mvc.perform(put("/api/sessions/{sessionId}/concern", sessionId)
+        mvc.perform(put("/api/v1/sessions/{sessionId}/concern", sessionId)
                         .header("Authorization", authorization)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"situationType\":\"OTHER\",\"weightBefore\":3}"))
                 .andExpect(status().isOk());
-        mvc.perform(put("/api/sessions/{sessionId}/concern/text", sessionId)
+        mvc.perform(put("/api/v1/sessions/{sessionId}/concern/text", sessionId)
                         .header("Authorization", authorization)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"rawText\":\"시험이 걱정돼\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.guidanceRequired").value(false))
                 .andExpect(jsonPath("$.rawText").doesNotExist());
-        mvc.perform(get("/api/reminders/status").header("Authorization", authorization))
+        mvc.perform(get("/api/v1/reminders/status").header("Authorization", authorization))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.count").value(0))
                 .andExpect(jsonPath("$.showNotice").value(false));
-        mvc.perform(get("/api/reminders/status"))
+        mvc.perform(get("/api/v1/reminders/status"))
                 .andExpect(status().isUnauthorized());
-        mvc.perform(post("/api/sessions"))
+        mvc.perform(post("/api/v1/sessions"))
                 .andExpect(status().isUnauthorized());
     }
 }
