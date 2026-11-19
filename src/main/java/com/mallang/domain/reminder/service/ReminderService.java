@@ -15,7 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class ReminderService {
-    private static final String SELECT = "SELECT d.deferred_record_id, s.session_id, s.completed_at, "
+    private static final String SELECT = "SELECT d.deferred_record_id, s.reflection_id, s.session_id, s.completed_at, "
             + "s.situation_type, s.weight_before, s.recommended_route, s.chosen_route, s.weight_reduced "
             + "FROM deferred_record d JOIN session_summary s ON s.session_id = d.session_id ";
     private final JdbcTemplate jdbc;
@@ -103,8 +103,8 @@ public class ReminderService {
     }
 
     private ReminderSummary map(ResultSet rs, int row) throws SQLException {
-        return new ReminderSummary(rs.getLong(1), rs.getString(2), rs.getTimestamp(3).toInstant(),
-                SituationType.valueOf(rs.getString(4)), rs.getInt(5),
-                PathType.valueOf(rs.getString(6)), PathType.valueOf(rs.getString(7)), rs.getBoolean(8));
+        return new ReminderSummary(rs.getLong(1), rs.getLong(2), rs.getString(3), rs.getTimestamp(4).toInstant(),
+                SituationType.valueOf(rs.getString(5)), rs.getInt(6),
+                PathType.valueOf(rs.getString(7)), PathType.valueOf(rs.getString(8)), rs.getBoolean(9));
     }
 }
