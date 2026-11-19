@@ -6,6 +6,6 @@ public record SafetyGuideResponse(
         GuideType guideType,
         String name,
         String contact,
-        String description
+        String url
 ) {
 }

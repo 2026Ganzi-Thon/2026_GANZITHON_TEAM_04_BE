@@ -41,12 +41,12 @@ class ConcernControllerIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"rawText\":\"시험이 걱정돼\"}"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.guidanceRequired").value(false))
-                .andExpect(jsonPath("$.rawText").doesNotExist());
+                .andExpect(jsonPath("$.data.accepted").value(true))
+                .andExpect(jsonPath("$.data.rawText").doesNotExist());
         mvc.perform(get("/api/v1/reminders/status").header("Authorization", authorization))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.count").value(0))
-                .andExpect(jsonPath("$.showNotice").value(false));
+                .andExpect(jsonPath("$.data.count").value(0))
+                .andExpect(jsonPath("$.data.showNotification").value(false));
         mvc.perform(get("/api/v1/reminders/status"))
                 .andExpect(status().isUnauthorized());
         mvc.perform(post("/api/v1/sessions"))

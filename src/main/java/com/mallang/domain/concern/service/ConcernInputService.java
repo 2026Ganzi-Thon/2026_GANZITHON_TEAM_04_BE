@@ -27,11 +27,11 @@ public class ConcernInputService {
         }
         String text = request.rawText();
         if (text == null || text.codePoints().allMatch(
-                c -> Character.isWhitespace(c) || Character.isSpaceChar(c))) {
-            throw new GeneralException(HttpStatus.BAD_REQUEST, "고민을 입력해 주세요.");
+                c -> Character.isWhitespace(c) || Character.isSpaceChar(c) || c == 0x85)) {
+            throw new GeneralException(HttpStatus.BAD_REQUEST, "EMPTY_CONCERN", "고민을 입력해 주세요.");
         }
         if (GRAPHEME.matcher(text).results().limit(MAX_CHARACTERS + 1L).count() > MAX_CHARACTERS) {
-            throw new GeneralException(HttpStatus.BAD_REQUEST, "고민은 200자 이내로 입력해 주세요.");
+            throw new GeneralException(HttpStatus.BAD_REQUEST, "CONCERN_TOO_LONG", "고민은 200자 이내로 입력해 주세요.");
         }
         SafetyCheckResponse safety = safetyService.check(text);
         return new ConcernInputResult(request.situationType(), request.weightBefore(),

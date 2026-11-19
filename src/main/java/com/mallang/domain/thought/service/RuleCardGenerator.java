@@ -7,8 +7,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class RuleCardGenerator implements CardGenerator {
 
-    // 줄바꿈이나 문장 부호(. ! ?) 뒤의 공백을 기준으로 나눈다
-    private static final String SPLIT_REGEX = "(?<=[.!?])\\s+|\\R+";
+    // 공백 없이 이어지는 문장도 나누고, 소수점이나 연속 문장부호는 유지한다.
+    private static final String SPLIT_REGEX = "(?<=[.!?。！？])(?:\\s+|(?=[^\\s.!?。！？\\d]))|\\R+";
 
     @Override
     public List<String> generate(String content) {

@@ -23,7 +23,7 @@ public class SafetyService {
         String normalized = normalize(text);
         boolean detected = CRISIS_KEYWORDS.stream().anyMatch(normalized::contains);
         return detected
-                ? SafetyCheckResponse.detected(GuideType.HOTLINE_109)
+                ? SafetyCheckResponse.detected(GuideType.CRISIS)
                 : SafetyCheckResponse.safe();
     }
 
@@ -32,17 +32,11 @@ public class SafetyService {
         return text.replaceAll("[\\s\\p{Punct}]", "").toLowerCase();
     }
     public List<SafetyGuideResponse> getGuides() {
+        // 연락 방식과 URL은 출시 전 공식 안내로 다시 확인해야 한다 (확인 전 URL은 null)
         return List.of(
-                new SafetyGuideResponse(
-                        GuideType.HOTLINE_109,
-                        "자살예방 상담전화",
-                        "109",
-                        "365일 24시간 전문 상담사와 통화할 수 있어요."),
-                new SafetyGuideResponse(
-                        GuideType.SNS_COUNSEL,
-                        "마들랜 (자살예방 SNS 상담)",
-                        "카카오톡에서 '마들랜' 검색, 문자 109, 마들랜 앱",
-                        "365일 24시간 문자나 메신저로 상담할 수 있어요.")
+                new SafetyGuideResponse(GuideType.CRISIS, "자살예방 상담전화", "109", null),
+                new SafetyGuideResponse(GuideType.CRISIS, "마들랜 (자살예방 SNS 상담)",
+                        "카카오톡에서 '마들랜' 검색, 문자 109, 마들랜 앱", null)
         );
     }
 
