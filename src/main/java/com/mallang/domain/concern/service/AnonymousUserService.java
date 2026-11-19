@@ -45,6 +45,17 @@ public class AnonymousUserService {
         return userId;
     }
 
+    public UserSummary summary(String authenticatedUser, String userId) {
+        if (!authenticatedUser.equals(userId)) {
+            throw new GeneralException(HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다.");
+        }
+        return new UserSummary(userId, stepCount(userId));
+    }
+
+    public int stepCount(String userId) {
+        return jdbc.queryForObject("SELECT step_count FROM app_user WHERE user_id = ?", Integer.class, userId);
+    }
+
     private String digest(String token) {
         try {
             byte[] hash = MessageDigest.getInstance("SHA-256")
@@ -58,4 +69,6 @@ public class AnonymousUserService {
     public record Registration(String userId, String token) {
         @Override public String toString() { return "Registration[userId=" + userId + ", token=***]"; }
     }
+
+    public record UserSummary(String userId, int stepCount) {}
 }
