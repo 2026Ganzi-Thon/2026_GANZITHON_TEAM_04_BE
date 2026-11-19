@@ -10,6 +10,8 @@ import com.mallang.domain.reflection.dto.ReflectionSummary;
 import com.mallang.domain.reminder.service.ReminderService;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.http.HttpStatus;
@@ -58,7 +60,7 @@ public class ReflectionService {
         jdbc.update("""
                 INSERT INTO session_summary (session_id, active_public_id, user_id, completed_at, situation_type,
                     weight_before, recommended_route, chosen_route, weight_reduced)
-                VALUES (?, ?, ?, CURRENT_TIMESTAMP(6), ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, UTC_TIMESTAMP(6), ?, ?, ?, ?, ?)
                 """, session.id(), session.publicId(), userId, session.situation().name(), session.weight(),
                 session.recommended().name(), session.chosen().name(), moodReduced);
         jdbc.update("UPDATE app_user SET step_count = step_count + 1 WHERE user_id = ?", userId);
@@ -114,7 +116,8 @@ public class ReflectionService {
     }
 
     private ReflectionSummary map(ResultSet rs) throws SQLException {
-        return new ReflectionSummary(rs.getLong(1), rs.getTimestamp(2).toInstant(),
+        return new ReflectionSummary(rs.getLong(1),
+                rs.getObject("completed_at", LocalDateTime.class).toInstant(ZoneOffset.UTC),
                 SituationType.valueOf(rs.getString(3)).apiValue(), rs.getInt(4),
                 PathType.valueOf(rs.getString(5)), PathType.valueOf(rs.getString(6)), rs.getBoolean(7));
     }
