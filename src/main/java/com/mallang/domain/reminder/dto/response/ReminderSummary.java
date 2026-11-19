@@ -7,6 +7,7 @@ import java.time.Instant;
 /** Only the approved completed-result fields are exposed. */
 public record ReminderSummary(
         long reminderId,
+        long reflectionId,
         String sessionId,
         Instant completedAt,
         SituationType situationType,
